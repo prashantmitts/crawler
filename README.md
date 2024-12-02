@@ -100,7 +100,7 @@ out of these only 2 are being extracted and stored (bold) in the database. which
 ```
 
 3. **Configure configs**:
-    1. ``configs/db_configs.py`` for postgres database configs
+    1. ``configs/db_configs.py`` for postgres database configs or create database in postgres
     2. ``configs/orchestrator_configs.py`` for orchestrator configurations
 
 4. Create a postgres database and table using the following command:
