@@ -5,7 +5,7 @@ from common.utils import generate_uuid
 
 
 class MonitoringContainerManager:
-    def __init__(self, image_name="monitoring:1.0.6", path_to_dockerfile="."):
+    def __init__(self, image_name="monitoring:0.0.1", path_to_dockerfile="."):
         self.client = docker.from_env()
         self.image_name = image_name
 
