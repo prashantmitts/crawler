@@ -22,7 +22,7 @@ def main():
 
     try:
         result = crawler.crawl(app_url, username, password)
-        # print(json.dumps(result, indent=2))  # Print or save the result as needed
+        print(json.dumps(result, indent=2))  # Print or save the result as needed
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:

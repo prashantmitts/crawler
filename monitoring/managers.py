@@ -1,4 +1,3 @@
-import json
 import uuid
 
 from selenium import webdriver
@@ -10,7 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from common.db import Database
 from common.managers import ConfigManager
-from monitoring.utils import get_response_body
+from monitoring.network_event import NetworkEventHandler
 
 
 class SeleniumManager:
@@ -52,42 +51,11 @@ class SeleniumManager:
         network_calls = []
 
         for log in logs:
-            try:
-                message = json.loads(log["message"])["message"]
-                print("processing log message: ", message["method"])
-                if "Network.responseReceived" in message["method"]:
-                    response = message["params"].get("response", {})
-                    request_id = message["params"].get("requestId")
-                    response_body = get_response_body(self.driver, request_id)
-
-                    network_calls.append({
-                        "url": response.get("url"),
-                        "headers": response.get("headers", {}),
-                        "metadata": {
-                            "status": response.get("status"),
-                            "mime_type": response.get("mimeType"),
-                            "body": response_body or "N/A",  # Fetch body if available
-                        }
-                    })
-
-                # Handle 'requestWillBeSent' event
-                elif "Network.requestWillBeSent" in message["method"]:
-                    request = message["params"].get("request", {})
-                    post_data = request.get("postData")  # POST request body
-                    network_calls.append({
-                        "url": request.get("url"),
-                        "headers": request.get("headers", {}),
-                        "metadata": {
-                            "method": request.get("method"),
-                            "postData": post_data or "N/A",
-                        }
-                    })
-            except Exception as e:
-                print(f"Error processing log: {e}")
+            event = NetworkEventHandler.handle_log(log, self.driver)
+            network_calls.append(event) if event else None
 
         for network_call in network_calls:
             self.db.store_network_call(network_call)
-
         return network_calls
 
     def quit_browser(self):
