@@ -5,7 +5,7 @@ from common.utils import generate_uuid
 
 
 class MonitoringContainerManager:
-    def __init__(self, image_name="monitoring:0.0.1", path_to_dockerfile="."):
+    def __init__(self, image_name="monitoring:1.0.6", path_to_dockerfile="."):
         self.client = docker.from_env()
         self.image_name = image_name
 
@@ -22,8 +22,18 @@ class MonitoringContainerManager:
             for log in build_logs:
                 print(log.get('stream', '').strip())
 
-    def create_monitoring_container(self, app_url, username=None, password=None):
+    def ensure_network_exists(self, network_name="app-network"):
         try:
+            self.client.networks.get(network_name)
+            print(f"Network '{network_name}' already exists.")
+        except docker.errors.NotFound:
+            print(f"Creating network '{network_name}'...")
+            self.client.networks.create(network_name, driver="bridge")
+
+    def create_monitoring_container(self, app_url, username=None, password=None, network="app-network"):
+        try:
+            self.ensure_network_exists(network)
+
             print(f"Starting container for URL: {app_url}...")
             name = f"monitoring-{generate_uuid()}"
             print(f"Container name: {name}")
@@ -35,7 +45,8 @@ class MonitoringContainerManager:
                     "USERNAME": username,
                     "PASSWORD": password
                 },
-                name=name
+                name=name,
+                network=network  # Attach to the specified Docker network
             )
             # Wait for the container to finish execution
             status_code = container.wait()

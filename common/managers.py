@@ -1,5 +1,3 @@
-import json
-
 from common.utils import load_json_file
 
 

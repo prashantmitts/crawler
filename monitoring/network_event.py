@@ -1,14 +1,15 @@
 import json
 from abc import ABC, abstractmethod
 
-from utils import get_response_body
+from monitoring.utils import get_response_body
 
 
 class NetworkEvent(ABC):
-    def __init__(self, url, headers, metadata):
+    def __init__(self, url, headers, metadata, event):
         self.url = url
         self.headers = headers
         self.metadata = metadata
+        self.event = event
 
     def __repr__(self):
         return f"<NetworkEvent url={self.url}>"
@@ -20,8 +21,8 @@ class NetworkEvent(ABC):
 
 
 class RequestWillBeSentNetworkEvent(NetworkEvent):
-    def __init__(self, url, headers, metadata):
-        super().__init__(url, headers, metadata)
+    def __init__(self, url, headers, metadata, event):
+        super().__init__(url, headers, metadata, event)
 
     @classmethod
     def from_message(cls, message, driver):
@@ -33,13 +34,14 @@ class RequestWillBeSentNetworkEvent(NetworkEvent):
             metadata={
                 "method": request.get("method"),
                 "postData": post_data or "N/A",
-            }
+            },
+            event="requestWillBeSent"
         )
 
 
 class ResponseReceivedNetworkEvent(NetworkEvent):
-    def __init__(self, url, headers, metadata):
-        super().__init__(url, headers, metadata)
+    def __init__(self, url, headers, metadata, event):
+        super().__init__(url, headers, metadata, event)
 
     @classmethod
     def from_message(cls, message, driver):
@@ -53,7 +55,8 @@ class ResponseReceivedNetworkEvent(NetworkEvent):
                 "status": response.get("status"),
                 "mime_type": response.get("mimeType"),
                 "body": response_body or "N/A",  # Fetch body if available
-            }
+            },
+            event="responseReceived"
         )
 
 
@@ -68,13 +71,17 @@ class NetworkEventHandler:
             method = message.get("method")
             print("Processing log message:", method)
 
-            if method == "Network.responseReceived":
-                return ResponseReceivedNetworkEvent.from_message(message, driver)
-            elif method == "Network.requestWillBeSent":
-                return RequestWillBeSentNetworkEvent.from_message(message, driver)
-            else:
-                print(f"Unhandled network event: {method}")
-                return None
+            network_event_map = {
+                "Network.responseReceived": ResponseReceivedNetworkEvent,
+                "Network.requestWillBeSent": RequestWillBeSentNetworkEvent,
+            }
+            if method in network_event_map:
+                return network_event_map[method].from_message(message, driver)
+
+            print(f"Unhandled network event: {method}")
+            return None
         except (KeyError, json.JSONDecodeError) as e:
             print(f"Error processing log: {e}")
+            return None
+        except:
             return None

@@ -24,10 +24,10 @@ on provided credentials (if the url requires to be authenticated).
     3. Network.loadingFinished
     4. Network.policyUpdated
     5. **Network.requestWillBeSent**
-    6. **Network.requestWillBeSentExtraInfo**
+    6. Network.requestWillBeSentExtraInfo
     7. Network.resourceChangedPriority
     8. **Network.responseReceived**
-    9. **Network.responseReceivedExtraInfo**
+    9. Network.responseReceivedExtraInfo
     10. Page.domContentEventFired
     11. Page.frameNavigated
     12. Page.frameResized
@@ -36,7 +36,7 @@ on provided credentials (if the url requires to be authenticated).
     15. Page.loadEventFired
     16. Page.navigatedWithinDocument
 
-out of these only 4 are being extracted and stored (bold) in the database. which felt to be useful for the analysis.
+out of these only 2 are being extracted and stored (bold) in the database. which felt to be useful for the analysis.
 
 3. We are not crawling the page, network calls are being captured and stored in the database until the page loads fully,
    crawling is out of scope though which can be implemented easily with current code.
@@ -52,6 +52,9 @@ out of these only 4 are being extracted and stored (bold) in the database. which
 
 ## **Future considerations**
 
+1. We can add more network events to be stored in the database.
+2. We can have priority based crawling, where we can crawl the pages based on the priority.
+3. We can have suspendable jobs to ensure that there is no starvation of the jobs scheduled.
 
 ## **Installation**
 
@@ -107,7 +110,9 @@ CREATE TABLE network_calls (
     id SERIAL PRIMARY KEY,
     url TEXT,
     headers JSON,
-    metadata JSON
+    metadata JSON,
+    event TEXT,
+    session_id TEXT
 );
 ```
 

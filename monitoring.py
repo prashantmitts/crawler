@@ -8,8 +8,7 @@ def main():
     print("Starting the crawler...")
 
     # Load inputs from environment variables
-    # app_url = os.getenv("APP_URL")
-    app_url = "https://news.google.com"
+    app_url = os.getenv("APP_URL")
     username = os.getenv("USERNAME")
     password = os.getenv("PASSWORD")
 
@@ -17,8 +16,7 @@ def main():
         raise ValueError("APP_URL environment variable is required.")
     print(f"Session starting for URL: {app_url}")
 
-    # crawler = Crawler(chrome_driver_path="/usr/bin/chromedriver")
-    crawler = Crawler()
+    crawler = Crawler(chrome_driver_path="/usr/bin/chromedriver")
 
     try:
         result = crawler.crawl(app_url, username, password)

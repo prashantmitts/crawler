@@ -45,7 +45,7 @@ class SeleniumManager:
             EC.presence_of_element_located((by, value))
         )
 
-    def capture_network_traffic(self):
+    def capture_network_traffic(self, session_id):
         logs = self.driver.get_log("performance")
         print(f"Captured {len(logs)} network logs.")
         network_calls = []
@@ -55,7 +55,7 @@ class SeleniumManager:
             network_calls.append(event) if event else None
 
         for network_call in network_calls:
-            self.db.store_network_call(network_call)
+            self.db.store_network_call(session_id, network_call)
         return network_calls
 
     def quit_browser(self):
@@ -88,7 +88,7 @@ class Crawler:
 
         # Wait and capture network traffic
         print("Capturing network calls...")
-        network_calls = self.selenium_manager.capture_network_traffic()
+        network_calls = self.selenium_manager.capture_network_traffic(session_id)
 
         return {
             "session_id": session_id,
